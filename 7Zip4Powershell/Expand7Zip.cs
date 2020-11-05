@@ -24,7 +24,7 @@ namespace SevenZip4PowerShell {
         public SecureString SecurePassword { get; set; }
 
         [Parameter(HelpMessage = "Extract given files out of archive.")]
-        public string[] Files { get; set; }
+        public string[] Filter { get; set; }
 
         [Parameter(HelpMessage = "Do not output extraction progress")]
         public SwitchParameter NoProgress { get; set; }
@@ -86,8 +86,8 @@ namespace SevenZip4PowerShell {
                         statusDescription = $"Extracting file {args.FileInfo.FileName}";
                         Write(statusDescription);
                     };
-                    if (_cmdlet.Files != null && _cmdlet.Files.Length > 0) {
-                        extractor.ExtractFiles(targetPath, _cmdlet.Files);
+                    if (_cmdlet.Filter != null && _cmdlet.Filter.Length > 0) {
+                        extractor.ExtractFiles(targetPath, _cmdlet.Filter);
                     } else {
                         extractor.ExtractArchive(targetPath);
                     }
