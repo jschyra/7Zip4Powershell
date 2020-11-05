@@ -23,6 +23,12 @@ namespace SevenZip4PowerShell {
         [Parameter(ParameterSetName = ParameterSetNames.SecurePassword)]
         public SecureString SecurePassword { get; set; }
 
+        [Parameter(HelpMessage = "Extract given files out of archive.")]
+        public string[] Files { get; set; }
+
+        [Parameter(HelpMessage = "Do not output extraction progress")]
+        public SwitchParameter NoProgress { get; set; }
+
         [Parameter(HelpMessage = "Allows setting additional parameters on SevenZipExtractor")]
         [Obsolete("The parameter CustomInitialization is obsolete, as it never worked as intended.")]
         public ScriptBlock CustomInitialization { get; set; }
@@ -66,19 +72,30 @@ namespace SevenZip4PowerShell {
                 var statusDescription = "Extracting";
 
                 Write($"Extracting archive {archiveFileName}");
-                WriteProgress(new ProgressRecord(0, activity, statusDescription) { PercentComplete = 0 });
+                if (!_cmdlet.NoProgress) {
+                    WriteProgress(new ProgressRecord(0, activity, statusDescription) { PercentComplete = 0 });
+                }
 
                 using (var extractor = CreateExtractor(archiveFileName)) {
-                    extractor.Extracting += (sender, args) =>
-                        WriteProgress(new ProgressRecord(0, activity, statusDescription) { PercentComplete = args.PercentDone });
+                    if (!_cmdlet.NoProgress) {
+                        extractor.Extracting += (sender, args) => {
+                            WriteProgress(new ProgressRecord(0, activity, statusDescription) { PercentComplete = args.PercentDone });
+                        };
+                    }
                     extractor.FileExtractionStarted += (sender, args) => {
                         statusDescription = $"Extracting file {args.FileInfo.FileName}";
                         Write(statusDescription);
                     };
-                    extractor.ExtractArchive(targetPath);
+                    if (_cmdlet.Files != null && _cmdlet.Files.Length > 0) {
+                        extractor.ExtractFiles(targetPath, _cmdlet.Files);
+                    } else {
+                        extractor.ExtractArchive(targetPath);
+                    }
                 }
 
-                WriteProgress(new ProgressRecord(0, activity, "Finished") { RecordType = ProgressRecordType.Completed });
+                if (!_cmdlet.NoProgress) {
+                    WriteProgress(new ProgressRecord(0, activity, "Finished") { RecordType = ProgressRecordType.Completed });
+                }
                 Write("Extraction finished");
             }
 
