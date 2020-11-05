@@ -2,8 +2,6 @@
 param(
 	[Parameter(Mandatory=$false)]
 	[string]$Configuration = "Release",
-
-	[Parameter(Mandatory=$true)]
 	[string]$NuGetApiKey
 )
 
@@ -34,4 +32,6 @@ Write-Host "Patching version in $psd1File file to $version"
 ((Get-Content $psd1File -Raw) -replace '\$version\$',$version) | Set-Content $psd1File
 
 # finally publish the 
-Publish-Module -Path $moduleTargetPath -NuGetApiKey $NuGetApiKey
+if (!([string]::IsNullOrEmpty($NuGetApiKey))) {
+    Publish-Module -Path $moduleTargetPath -NuGetApiKey $NuGetApiKey
+}
