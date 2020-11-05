@@ -1,5 +1,7 @@
 # 7Zip4Powershell
 
+This is a Fork from [thoemmi/7Zip4Powershell](https://github.com/thoemmi/7Zip4Powershell).
+
 Powershell module for creating and extracting 7-Zip archives supporting Powershell's `WriteProgress` API.
 
 ![Screenshot](https://raw.githubusercontent.com/thoemmi/7Zip4Powershell/master/Assets/compression.gif)
