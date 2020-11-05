@@ -76,6 +76,9 @@ namespace SevenZip4PowerShell {
         [Parameter(HelpMessage = "Append files to existing archive")]
         public SwitchParameter Append { get; set; }
 
+        [Parameter(HelpMessage = "Do not output compression progress")]
+        public SwitchParameter NoProgress { get; set; }
+
         private OutArchiveFormat _inferredOutArchiveFormat;
         private string _password;
 
@@ -228,8 +231,11 @@ namespace SevenZip4PowerShell {
                 var currentStatus = "Compressing";
                 compressor.FilesFound += (sender, args) =>
                     Write($"{args.Value} files found for compression");
-                compressor.Compressing += (sender, args) =>
-                    WriteProgress(new ProgressRecord(0, activity, currentStatus) { PercentComplete = args.PercentDone });
+                if (!_cmdlet.NoProgress) {
+                    compressor.Compressing += (sender, args) => {
+                        WriteProgress(new ProgressRecord(0, activity, currentStatus) { PercentComplete = args.PercentDone });
+                    };
+                }
                 compressor.FileCompressionStarted += (sender, args) => {
                     currentStatus = $"Compressing {args.FileName}";
                     Write($"Compressing {args.FileName}");
@@ -265,8 +271,9 @@ namespace SevenZip4PowerShell {
                         }
                     }
                 }
-
-                WriteProgress(new ProgressRecord(0, activity, "Finished") { RecordType = ProgressRecordType.Completed });
+                if (!_cmdlet.NoProgress) {
+                    WriteProgress(new ProgressRecord(0, activity, "Finished") { RecordType = ProgressRecordType.Completed });
+                }
                 Write("Compression finished");
             }
         }
