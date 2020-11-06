@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNet.Glob" Version="3.1.0" />
     <PackageReference Include="GitVersionTask">
       <Version>5.3.7</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
