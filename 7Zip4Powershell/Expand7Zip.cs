@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
 using System.Security;
 using JetBrains.Annotations;
 using SevenZip;
+using DotNet.Globbing;
+using System.Linq;
 
 namespace SevenZip4PowerShell {
     [Cmdlet(VerbsData.Expand, "7Zip", DefaultParameterSetName = ParameterSetNames.NoPassword)]
@@ -87,7 +90,12 @@ namespace SevenZip4PowerShell {
                         Write(statusDescription);
                     };
                     if (_cmdlet.Filter != null && _cmdlet.Filter.Length > 0) {
-                        extractor.ExtractFiles(targetPath, _cmdlet.Filter);
+                        List<string> files = this.FilterFiles(new List<string>(extractor.ArchiveFileNames), _cmdlet.Filter);
+                        if (files.Count < 1) {
+                            Write("No files found in archive by given filter.");
+                        } else {
+                            extractor.ExtractFiles(targetPath, files.ToArray());
+                        }
                     } else {
                         extractor.ExtractArchive(targetPath);
                     }
@@ -99,12 +107,28 @@ namespace SevenZip4PowerShell {
                 Write("Extraction finished");
             }
 
-            private SevenZipExtractor CreateExtractor(string archiveFileName) {
+            protected SevenZipExtractor CreateExtractor(string archiveFileName) {
                 if (!string.IsNullOrEmpty(_cmdlet._password)) {
                     return new SevenZipExtractor(archiveFileName, _cmdlet._password);
                 } else {
                     return new SevenZipExtractor(archiveFileName);
                 }
+            }
+
+            protected List<string> FilterFiles(List<string> files, string[] filter) {
+                List<string> filteredFiles = new List<string>();
+
+                foreach(string f in filter) {
+                    Write("Filter files by " + f);
+                    Glob glob = Glob.Parse(f);
+                    foreach(string file in files) {
+                        if (glob.IsMatch(file) && !filteredFiles.Contains(file)) {
+                            filteredFiles.Add(file);
+                        }
+                    }
+                }
+
+                return filteredFiles;
             }
         }
     }
